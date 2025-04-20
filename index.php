@@ -1,20 +1,22 @@
 <?php 
-
 require_once "database/database.php";
 require_once "api/student.php";
 
 // Handle the API request
 $url = explode("/", $_SERVER['QUERY_STRING']);
 
-header('Access-Control-Allow-Origin: application/json');
+// Set headers globally
+header(header: 'Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 
-if ($url[1] == 'v1' && $url[2] == 'student') {
-    header('Access-Control-Allow-Methods:GET');
 
-    $student = new student();
+//Get All Student 
 
-    if ($url[3] == 'all') {
+if (isset($url[1]) && $url[1] == 'v1' && isset($url[2]) && $url[2] == 'student') {
+    $student = new Student();
+
+    if (isset($url[3]) && $url[3] == 'all') {
         $data = $student->all();
         $res = [
             'status' => 200,
@@ -22,72 +24,55 @@ if ($url[1] == 'v1' && $url[2] == 'student') {
         ];
         echo json_encode($res);
 
-    } elseif ($url[3] == 'add') {
-
-        header('Access-Control-Allow-Methods:POST');
-
+        //Insert All Student 
+        
+    } elseif (isset($url[3]) && $url[3] == 'add') {
         $data = file_get_contents("php://input");
         $data_de = json_decode($data, true);
         $res = $student->add($data_de);
 
         if ($res) {
-            $res = [
-                'status' => 201,
-                'msg' => "Student inserted"
-            ];
+            http_response_code(201);
+            echo json_encode(['status' => 201, 'msg' => "Student inserted"]);
         } else {
-            $res = [
-                'status' => 400,
-                'msg' =>  "Error"
-            ];
+            http_response_code(400);
+            echo json_encode(['status' => 400, 'msg' => "Error inserting student"]);
         }
-        echo json_encode($res);
-    }
-     elseif ($url[3] == 'update') {
-        header('Access-Control-Allow-Methods:PUT');
 
+        //Update All Student 
+
+    } elseif (isset($url[3]) && $url[3] == 'update') {
         $data = file_get_contents("php://input");
         $data_de = json_decode($data, true);
+        $id = $data_de['id'];
+        $studentData = $data_de['student'];
 
-        $id =  [ "id" => $data_de ['id']];
-        $data = $data_de['student'];
-
-        $res = $student->update($data,$id);
+        $res = $student->update($studentData, $id);
 
         if ($res) {
-            $res = [
-                'status' => 200,
-                'msg' => "Student updated"
-            ];
+            http_response_code( 200);
+            echo json_encode(['status' => 200, 'msg' => "Student updated"]);
         } else {
-            $res = [
-                'status' => 400,
-                'msg' =>  "Error"
-            ];
+            http_response_code(400);
+            echo json_encode(['status' => 400, 'msg' => "Error updating student"]);
         }
-        echo json_encode($res);
 
 
-    } elseif ($url[3] == 'delete') {
+    //Delete All Student 
 
-        header('Access-Control-Allow-Methods:DELETE');
-
+    } elseif (isset($url[3]) && $url[3] == 'delete') {
         $data = file_get_contents("php://input");
         $data_de = json_decode($data, true);
-        $id =  [ "id" => $data_de ['id']];
+        $id = $data_de['id'];
+
         $res = $student->delete($id);
 
         if ($res) {
-            $res = [
-                'status' => 200,
-                'msg' => "Student deleted"
-            ];
+            http_response_code(200);
+            echo json_encode(['status' => 200, 'msg' => "Student deleted"]);
         } else {
-            $res = [
-                'status' => 400,
-                'msg' =>  "Error deleting student"
-            ];
+            http_response_code(400);
+            echo json_encode(['status' => 400, 'msg' => "Error deleting student"]);
         }
-        echo json_encode($res);
     }
 }
